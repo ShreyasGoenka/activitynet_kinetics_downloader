@@ -118,14 +118,22 @@ def download_clip(video_identifier, output_filename,
     return status, 'Downloaded'
 
 
-def download_clip_wrapper(row, label_to_dir, trim_format, tmp_dir):
+def download_clip_wrapper(i, row, label_to_dir, trim_format, tmp_dir):
     """Wrapper for parallel processing purposes."""
+    print(i)
+    if i < 219650:
+    	return tuple([i, True, 'Exists'])
+    if i%50 == 0:
+    	print(i)
+    #print("made it past")
     output_filename = construct_video_filename(row, label_to_dir,
                                                trim_format)
     clip_id = os.path.basename(output_filename).split('.mp4')[0]
+    #print(clip_id)
     if os.path.exists(output_filename):
         status = tuple([clip_id, True, 'Exists'])
         return status
+    #print(clip_id)
 
     downloaded, log = download_clip(row['video-id'], output_filename,
                                     row['start-time'], row['end-time'],
@@ -163,7 +171,7 @@ def parse_kinetics_annotations(input_csv, ignore_is_cc=False):
 
 
 def main(input_csv, output_dir,
-         trim_format='%06d', num_jobs=24, tmp_dir='/tmp/kinetics',
+         trim_format='%06d', num_jobs=40, tmp_dir='tmp/kinetics',
          drop_duplicates=False):
 
     # Reading and parsing Kinetics.
@@ -185,12 +193,16 @@ def main(input_csv, output_dir,
     if num_jobs == 1:
         status_lst = []
         for i, row in dataset.iterrows():
-            status_lst.append(download_clip_wrapper(row, label_to_dir,
+	    if i < 17050:
+	    	continue
+            status_lst.append(download_clip_wrapper(i, row, label_to_dir,
                                                     trim_format, tmp_dir))
+            if (i-1)%50 == 0:
+	    	print(i)
     else:
-        status_lst = Parallel(n_jobs=num_jobs)(delayed(download_clip_wrapper)(
+        status_lst = Parallel(n_jobs=num_jobs)(delayed(download_clip_wrapper)(i,
             row, label_to_dir,
-            trim_format, tmp_dir) for i, row in dataset.iterrows())
+            trim_format, tmp_dir) for i, row in dataset.iterrows() if i > 219650)
 
     # Clean tmp dir.
     shutil.rmtree(tmp_dir)
@@ -212,8 +224,8 @@ if __name__ == '__main__':
                    help=('This will be the format for the '
                          'filename of trimmed videos: '
                          'videoid_%0xd(start_time)_%0xd(end_time).mp4'))
-    p.add_argument('-n', '--num-jobs', type=int, default=24)
-    p.add_argument('-t', '--tmp-dir', type=str, default='/tmp/kinetics')
+    p.add_argument('-n', '--num-jobs', type=int, default=40)
+    p.add_argument('-t', '--tmp-dir', type=str, default='tmp/kinetics')
     p.add_argument('--drop-duplicates', type=str, default='non-existent',
                    help='Unavailable at the moment')
                    # help='CSV file of the previous version of Kinetics.')
