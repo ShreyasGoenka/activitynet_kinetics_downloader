@@ -138,6 +138,9 @@ def download_clip_wrapper(i, row, label_to_dir, trim_format, tmp_dir):
     downloaded, log = download_clip(row['video-id'], output_filename,
                                     row['start-time'], row['end-time'],
                                     tmp_dir=tmp_dir)
+    if i%50 == 0:
+        print(downloaded, log)
+        
     status = tuple([clip_id, downloaded, log])
     return status
 
@@ -187,7 +190,9 @@ def main(input_csv, output_dir,
     #     print(dataset.shape)
 
     # Creates folders where videos will be saved later.
+    # print(dataset)
     label_to_dir = create_video_folders(dataset, output_dir, tmp_dir)
+    # print(label_to_dir)
 
     # Download all clips.
     if num_jobs == 1:
