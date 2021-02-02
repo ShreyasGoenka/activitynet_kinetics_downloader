@@ -121,19 +121,19 @@ def download_clip(video_identifier, output_filename,
 def download_clip_wrapper(i, row, label_to_dir, trim_format, tmp_dir):
     """Wrapper for parallel processing purposes."""
     print(i)
-    if i < 17050:
-        return tuple([i, True, 'Exists'])
+
     if i%50 == 0:
-        print(i)
-    print("made it past")
+    	print(i)
+    #print("made it past")
     output_filename = construct_video_filename(row, label_to_dir,
                                                trim_format)
     clip_id = os.path.basename(output_filename).split('.mp4')[0]
-    print(clip_id)
+    #print(clip_id)
     if os.path.exists(output_filename):
         status = tuple([clip_id, True, 'Exists'])
         return status
-    print(clip_id)
+    #print(clip_id)
+
 
     downloaded, log = download_clip(row['video-id'], output_filename,
                                     row['start-time'], row['end-time'],
@@ -202,7 +202,8 @@ def main(input_csv, output_dir,
     else:
         status_lst = Parallel(n_jobs=num_jobs)(delayed(download_clip_wrapper)(i,
             row, label_to_dir,
-            trim_format, tmp_dir) for i, row in dataset.iterrows() if i > 17050)
+            trim_format, tmp_dir) for i, row in dataset.iterrows())
+
 
     # Clean tmp dir.
     shutil.rmtree(tmp_dir)
@@ -224,6 +225,7 @@ if __name__ == '__main__':
                    help=('This will be the format for the '
                          'filename of trimmed videos: '
                          'videoid_%0xd(start_time)_%0xd(end_time).mp4'))
+
     p.add_argument('-n', '--num-jobs', type=int, default=20)
     p.add_argument('-t', '--tmp-dir', type=str, default='tmp/kinetics')
     p.add_argument('--drop-duplicates', type=str, default='non-existent',
