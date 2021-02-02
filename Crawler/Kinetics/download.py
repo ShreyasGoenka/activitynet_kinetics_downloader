@@ -120,7 +120,7 @@ def download_clip(video_identifier, output_filename,
 
 def download_clip_wrapper(i, row, label_to_dir, trim_format, tmp_dir):
     """Wrapper for parallel processing purposes."""
-    print(i)
+    # print(i) 
 
     if i%50 == 0:
     	print(i)
